@@ -62,6 +62,9 @@
               暂无已配置模型，使用默认选项。<router-link to="/models">去添加</router-link>
             </span>
           </div>
+          <div class="form-group"><label>系统提示词</label><textarea class="input" v-model="form.system_prompt" rows="4" placeholder="输入系统提示词..."></textarea></div>
+          <div class="form-group"><label>Temperature (0-100)</label><input class="input" type="number" v-model.number="form.temperature" min="0" max="100" /></div>
+          <div class="form-group"><label>Max Tokens</label><input class="input" type="number" v-model.number="form.max_tokens" min="1" max="128000" /></div>
           <div class="modal-actions">
             <button type="button" class="btn" @click="showCreate = false">取消</button>
             <button type="submit" class="btn btn-primary">创建</button>
@@ -149,13 +152,13 @@ const typeColors: Record<string, string> = {
   chatbot: "var(--accent)", assistant: "var(--purple)", tool: "var(--orange)", workflow: "var(--green)",
 };
 
-const form = reactive({ name: "", description: "", agent_type: "chatbot", model_name: "GPT-4" });
+const form = reactive({ name: "", description: "", agent_type: "chatbot", model_name: "GPT-4", system_prompt: "", temperature: 70, max_tokens: 4096 });
 const editForm = reactive({ name: "", description: "", agent_type: "chatbot", model_name: "GPT-4", system_prompt: "", temperature: 70, max_tokens: 4096 });
 
 async function handleCreate() {
-  await store.createAgent({ ...form, temperature: 70, max_tokens: 4096 });
+  await store.createAgent({ ...form });
   showCreate.value = false;
-  form.name = ""; form.description = "";
+  form.name = ""; form.description = ""; form.system_prompt = "";
 }
 
 async function handleDelete(id: number) {
