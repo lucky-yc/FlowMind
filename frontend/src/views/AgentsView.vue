@@ -20,6 +20,7 @@
           <span class="agent-type">{{ agent.agent_type }}</span>
         </div>
         <div class="agent-actions">
+          <button class="btn btn-sm" @click.stop="handleEdit(agent)">编辑</button>
           <button class="btn btn-sm" @click.stop="handleChat(agent)">💬 对话</button>
           <button class="btn btn-sm btn-danger" @click.stop="handleDelete(agent.id)">删除</button>
         </div>
@@ -69,6 +70,45 @@
       </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div class="modal-overlay" v-if="showEdit && editingAgent" @click.self="showEdit = false">
+      <div class="modal glass">
+        <h2 class="modal-title">编辑智能体</h2>
+        <form @submit.prevent="handleUpdate">
+          <div class="form-group"><label>名称</label><input class="input" v-model="editForm.name" required placeholder="智能体名称" /></div>
+          <div class="form-group"><label>描述</label><textarea class="input" v-model="editForm.description" rows="2" placeholder="描述..."></textarea></div>
+          <div class="form-group"><label>类型</label>
+            <select class="input" v-model="editForm.agent_type">
+              <option value="chatbot">聊天机器人</option>
+              <option value="assistant">助手</option>
+              <option value="tool">工具型</option>
+              <option value="workflow">工作流型</option>
+            </select>
+          </div>
+          <div class="form-group"><label>模型</label>
+            <select class="input" v-model="editForm.model_name" v-if="modelStore.briefModels.length">
+              <option v-for="m in modelStore.briefModels" :key="m.id" :value="m.model_id">
+                {{ m.name }} ({{ m.provider }})
+              </option>
+            </select>
+            <select class="input" v-model="editForm.model_name" v-else>
+              <option>GPT-4</option><option>GPT-4o</option><option>Claude 3 Opus</option><option>Claude 3 Sonnet</option>
+            </select>
+            <span class="input-hint" v-if="!modelStore.briefModels.length">
+              暂无已配置模型，使用默认选项。<router-link to="/models">去添加</router-link>
+            </span>
+          </div>
+          <div class="form-group"><label>系统提示词</label><textarea class="input" v-model="editForm.system_prompt" rows="4" placeholder="输入系统提示词..."></textarea></div>
+          <div class="form-group"><label>Temperature (0-100)</label><input class="input" type="number" v-model.number="editForm.temperature" min="0" max="100" /></div>
+          <div class="form-group"><label>Max Tokens</label><input class="input" type="number" v-model.number="editForm.max_tokens" min="1" max="128000" /></div>
+          <div class="modal-actions">
+            <button type="button" class="btn" @click="showEdit = false">取消</button>
+            <button type="submit" class="btn btn-primary">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Chat Modal -->
     <div class="modal-overlay" v-if="chatAgent" @click.self="chatAgent = null">
       <div class="modal glass chat-modal">
@@ -98,6 +138,8 @@ import { agentApi } from "@/api/agents";
 const store = useAgentStore();
 const modelStore = useModelStore();
 const showCreate = ref(false);
+const showEdit = ref(false);
+const editingAgent = ref<any>(null);
 const chatAgent = ref<any>(null);
 const chatMessages = ref<any[]>([]);
 const chatInput = ref("");
@@ -108,6 +150,7 @@ const typeColors: Record<string, string> = {
 };
 
 const form = reactive({ name: "", description: "", agent_type: "chatbot", model_name: "GPT-4" });
+const editForm = reactive({ name: "", description: "", agent_type: "chatbot", model_name: "GPT-4", system_prompt: "", temperature: 70, max_tokens: 4096 });
 
 async function handleCreate() {
   await store.createAgent({ ...form, temperature: 70, max_tokens: 4096 });
@@ -117,6 +160,25 @@ async function handleCreate() {
 
 async function handleDelete(id: number) {
   if (confirm("确定删除？")) await store.deleteAgent(id);
+}
+
+function handleEdit(agent: any) {
+  editingAgent.value = agent;
+  editForm.name = agent.name;
+  editForm.description = agent.description;
+  editForm.agent_type = agent.agent_type;
+  editForm.model_name = agent.model_name;
+  editForm.system_prompt = agent.system_prompt || "";
+  editForm.temperature = agent.temperature || 70;
+  editForm.max_tokens = agent.max_tokens || 4096;
+  showEdit.value = true;
+}
+
+async function handleUpdate() {
+  if (!editingAgent.value) return;
+  await store.updateAgent(editingAgent.value.id, { ...editForm });
+  showEdit.value = false;
+  editingAgent.value = null;
 }
 
 function handleChat(agent: any) {
