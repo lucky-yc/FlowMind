@@ -42,5 +42,17 @@ export const useTaskStore = defineStore("task", () => {
     stats.value = data;
   }
 
-  return { tasks, executions, loading, total, stats, fetchTasks, createTask, deleteTask, runTask, fetchStats };
+  async function fetchExecutions() {
+    try {
+      const { data } = await taskApi.list();
+      executions.value = data.items?.map((t: any) => ({
+        id: t.id,
+        status: t.status || "completed",
+        started_at: t.created_at,
+        duration_ms: null,
+      })) || [];
+    } catch { /* ignore */ }
+  }
+
+  return { tasks, executions, loading, total, stats, fetchTasks, createTask, deleteTask, runTask, fetchStats, fetchExecutions };
 });

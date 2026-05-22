@@ -71,16 +71,16 @@ function handleLogout() {
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
-.page-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+.page-title { font-family: var(--font-display); font-size: 20px; font-weight: 400; font-style: italic; color: var(--text-primary); }
 .top-bar-right { display: flex; align-items: center; gap: 16px; }
 .user-info { display: flex; align-items: center; gap: 10px; }
 .user-avatar {
   width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  color: #fff; font-weight: 700; font-size: 14px;
+  background: var(--accent);
+  color: #fff; font-size: 14px; font-weight: 600;
 }
-.user-name { font-size: 14px; color: var(--text-secondary); }
+.user-name { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
 .page-container { flex: 1; overflow-y: auto; padding: 28px; }
 </style>

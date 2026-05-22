@@ -149,24 +149,24 @@ onMounted(() => store.fetchAgents());
   width: 10px; height: 10px; border-radius: 50%;
   background: var(--text-muted);
 }
-.agent-status-dot.active { background: var(--green); box-shadow: 0 0 8px rgba(16,185,129,0.5); }
-.agent-name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.agent-status-dot.active { background: var(--green); box-shadow: 0 0 6px rgba(90,143,94,0.4); }
+.agent-name { font-family: var(--font-display); font-size: 18px; font-weight: 400; font-style: italic; margin-bottom: 6px; }
 .agent-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .agent-meta { display: flex; gap: 8px; margin-bottom: 14px; }
 .agent-model, .agent-type {
   font-size: 11px; padding: 3px 8px; border-radius: 12px;
-  background: var(--bg-base); color: var(--text-muted);
+  background: var(--bg-surface); color: var(--text-muted); border: 1px solid var(--border-subtle);
 }
 .agent-actions { display: flex; gap: 8px; }
-.modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
-.modal { width: 100%; max-width: 480px; padding: 32px; border-radius: var(--radius-lg); }
-.modal-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+.modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(26,22,18,0.3); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
+.modal { width: 100%; max-width: 480px; padding: 32px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+.modal-title { font-family: var(--font-display); font-size: 24px; font-weight: 400; font-style: italic; margin-bottom: 24px; }
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .chat-modal { max-width: 520px; height: 500px; display: flex; flex-direction: column; padding: 0; }
 .chat-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); }
-.chat-header h3 { font-size: 16px; font-weight: 600; }
+.chat-header h3 { font-family: var(--font-display); font-size: 18px; font-weight: 400; font-style: italic; }
 .close-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
 .chat-msg.user { align-self: flex-end; }
@@ -176,7 +176,7 @@ onMounted(() => store.fetchAgents());
   font-size: 14px; line-height: 1.5;
 }
 .chat-msg.user .msg-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-.chat-msg.assistant .msg-bubble { background: var(--bg-surface); border-bottom-left-radius: 4px; }
+.chat-msg.assistant .msg-bubble { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-bottom-left-radius: 4px; }
 .chat-input-area { display: flex; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border-subtle); }
 .chat-input-area .input { flex: 1; }
 </style>

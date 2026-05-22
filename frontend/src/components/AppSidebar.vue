@@ -5,7 +5,7 @@
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
           <rect width="28" height="28" rx="8" fill="url(#g1)" />
           <path d="M8 14h4l2-4 2 8 2-4h4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          <defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#06b6d4" /><stop offset="1" stop-color="#8b5cf6" /></linearGradient></defs>
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#c9a96e" /><stop offset="1" stop-color="#7c6fa0" /></linearGradient></defs>
         </svg>
       </div>
       <div class="brand-text">
@@ -60,34 +60,34 @@ const route = useRoute();
   border-bottom: 1px solid var(--border-subtle);
 }
 .brand-text { display: flex; flex-direction: column; }
-.brand-name { font-family: var(--font-display); font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.brand-sub { font-size: 11px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.brand-name { font-family: var(--font-display); font-size: 22px; font-weight: 400; font-style: italic; color: var(--text-primary); }
+.brand-sub { font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
 .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
 .nav-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  padding: 10px 14px; border-radius: var(--radius-md);
+  color: var(--text-secondary); text-decoration: none;
   font-size: 14px; font-weight: 500;
   transition: all 0.2s ease;
-  text-decoration: none;
 }
 .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
 .nav-item.active {
   background: var(--accent-glow);
-  color: var(--accent);
-  border: 1px solid var(--border-accent);
+  color: var(--text-accent);
+  font-weight: 600;
 }
-.nav-icon { font-size: 18px; width: 24px; text-align: center; }
-.sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border-subtle); }
-.version-info { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
-.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-
-@media (max-width: 1024px) {
-  .sidebar { width: 72px; }
-  .brand-text, .nav-label, .sidebar-footer { display: none; }
-  .sidebar-brand { justify-content: center; padding: 16px; }
-  .nav-item { justify-content: center; padding: 12px; }
-  .nav-icon { margin: 0; }
+.nav-item.active .nav-icon { transform: scale(1.1); }
+.nav-icon { font-size: 18px; width: 24px; text-align: center; transition: transform 0.2s; }
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+.version-info {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--text-muted);
+}
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
 }
 </style>

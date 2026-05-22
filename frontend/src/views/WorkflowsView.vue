@@ -113,28 +113,28 @@ onMounted(load);
 .workflows-page { max-width: 1200px; }
 .filter-bar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .search-input { max-width: 320px; }
-.filter-tabs { display: flex; gap: 4px; background: var(--bg-raised); padding: 4px; border-radius: var(--radius-md); }
+.filter-tabs { display: flex; gap: 4px; background: var(--bg-surface); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); }
 .filter-tab {
   padding: 8px 16px; border: none; border-radius: var(--radius-sm);
   background: transparent; color: var(--text-muted);
   font-family: var(--font-body); font-size: 13px; font-weight: 500;
   cursor: pointer; transition: all 0.2s;
 }
-.filter-tab.active { background: var(--bg-surface); color: var(--text-primary); }
+.filter-tab.active { background: var(--bg-base); color: var(--text-primary); box-shadow: var(--shadow-sm); }
 .workflow-card { cursor: pointer; }
 .wf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .wf-icon { font-size: 24px; }
-.wf-name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.wf-name { font-family: var(--font-display); font-size: 18px; font-weight: 400; font-style: italic; margin-bottom: 6px; }
 .wf-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .wf-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
 .wf-actions { display: flex; gap: 8px; }
 .modal-overlay {
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  background: rgba(26,22,18,0.3); backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
 }
-.modal { width: 100%; max-width: 480px; padding: 32px; border-radius: var(--radius-lg); }
-.modal-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+.modal { width: 100%; max-width: 480px; padding: 32px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+.modal-title { font-family: var(--font-display); font-size: 24px; font-weight: 400; font-style: italic; margin-bottom: 24px; }
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }

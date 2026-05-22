@@ -11,7 +11,7 @@
       </div>
       <div class="config-section">
         <label>节点类型</label>
-        <div class="node-type-badge" :style="{ background: typeInfo.color + '20', color: typeInfo.color }">
+        <div class="node-type-badge" :style="{ background: typeInfo.color + '12', color: typeInfo.color }">
           {{ typeInfo.icon }} {{ typeInfo.label }}
         </div>
       </div>
@@ -144,7 +144,7 @@ function emitUpdate() {
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px 20px; border-bottom: 1px solid var(--border-subtle);
 }
-.panel-header h3 { font-size: 15px; font-weight: 600; }
+.panel-header h3 { font-family: var(--font-display); font-size: 17px; font-weight: 400; font-style: italic; }
 .close-btn {
   width: 28px; height: 28px; border: none; border-radius: var(--radius-sm);
   background: var(--bg-surface); color: var(--text-muted); cursor: pointer;
@@ -167,7 +167,7 @@ function emitUpdate() {
 .range-slider::-webkit-slider-thumb {
   -webkit-appearance: none; width: 16px; height: 16px;
   border-radius: 50%; background: var(--accent); cursor: pointer;
-  box-shadow: 0 0 8px var(--accent-glow);
+  box-shadow: 0 0 6px var(--accent-glow);
 }
 .mono { font-family: var(--font-mono); font-size: 12px; }
 .panel-footer { padding: 16px 20px; border-top: 1px solid var(--border-subtle); }

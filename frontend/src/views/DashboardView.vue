@@ -60,66 +60,75 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useTaskStore } from "@/stores/task";
-import { useAuthStore } from "@/stores/auth";
 import StatsCard from "@/components/StatsCard.vue";
+import { dashboardApi } from "@/api/tasks";
 
 const taskStore = useTaskStore();
-const auth = useAuthStore();
-const stats = computed(() => taskStore.stats);
+const stats = ref<any>(null);
 
 const greeting = computed(() => {
   const h = new Date().getHours();
-  const name = auth.user?.full_name || auth.user?.username || "";
-  if (h < 6) return `夜深了，${name}，注意休息`;
-  if (h < 12) return `早上好，${name}`;
-  if (h < 18) return `下午好，${name}`;
-  return `晚上好，${name}`;
+  if (h < 6) return "夜深了";
+  if (h < 12) return "早上好";
+  if (h < 18) return "下午好";
+  return "晚上好";
 });
 
-function formatTime(iso?: string) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+function formatTime(t: string) {
+  if (!t) return "";
+  return new Date(t).toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-onMounted(() => { taskStore.fetchStats(); });
+onMounted(async () => {
+  try {
+    const { data } = await dashboardApi.stats();
+    stats.value = data;
+  } catch (e) { console.error(e); }
+});
 </script>
 
 <style scoped>
 .dashboard { max-width: 1200px; }
-.greeting { font-size: 14px; color: var(--text-muted); }
+.greeting { font-size: 14px; color: var(--text-muted); font-style: italic; }
 .stats-grid { margin-bottom: 28px; }
-.dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
-@media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
-.section-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-secondary); }
-.exec-list { display: flex; flex-direction: column; gap: 8px; }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.section-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  font-style: italic;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+.exec-list { display: flex; flex-direction: column; gap: 12px; }
 .exec-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px; border-radius: var(--radius-md);
-  background: var(--bg-base); transition: background 0.2s;
+  padding: 10px 14px; border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  transition: background 0.2s;
 }
 .exec-item:hover { background: var(--bg-hover); }
 .exec-status {
-  width: 28px; height: 28px; border-radius: 50%;
+  width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700;
+  border-radius: 50%; font-size: 13px;
 }
-.exec-status.completed { background: rgba(16,185,129,0.15); color: var(--green); }
-.exec-status.running { background: rgba(6,182,212,0.15); color: var(--accent); animation: spin 1.5s linear infinite; }
-.exec-status.failed { background: rgba(239,68,68,0.15); color: var(--red); }
-@keyframes spin { to { transform: rotate(360deg); } }
-.exec-info { flex: 1; }
-.exec-name { display: block; font-size: 14px; font-weight: 500; }
-.exec-time { font-size: 12px; color: var(--text-muted); }
-.exec-duration { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+.exec-status.completed { background: rgba(90,143,94,0.12); color: var(--green); }
+.exec-status.running { background: rgba(201,169,110,0.12); color: var(--accent); }
+.exec-status.failed { background: rgba(192,80,77,0.12); color: var(--red); }
+.exec-info { flex: 1; display: flex; flex-direction: column; }
+.exec-name { font-size: 13px; font-weight: 600; }
+.exec-time { font-size: 11px; color: var(--text-muted); }
+.exec-duration { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
 .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .action-card {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 20px; border-radius: var(--radius-md);
-  background: var(--bg-base); border: 1px solid var(--border-subtle);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 24px 16px; border-radius: var(--radius-lg);
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
   cursor: pointer; transition: all 0.2s;
-  font-family: var(--font-body); color: var(--text-secondary);
 }
-.action-card:hover { background: var(--bg-hover); border-color: var(--border-accent); transform: translateY(-2px); }
+.action-card:hover { border-color: var(--border-accent); background: var(--bg-hover); transform: translateY(-2px); }
 .action-icon { font-size: 28px; }
-.action-label { font-size: 13px; font-weight: 500; }
+.action-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+@media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="stats-card card">
-    <div class="stats-icon" :style="{ background: `${color}15`, color: color }">
+    <div class="stats-icon" :style="{ background: `${color}10`, color: color }">
       {{ icon }}
     </div>
     <div class="stats-content">
@@ -47,8 +47,9 @@ onMounted(() => { if (props.value) animateTo(props.value); });
 .stats-content { display: flex; flex-direction: column; }
 .stats-value {
   font-family: var(--font-display);
-  font-size: 28px; font-weight: 800;
+  font-size: 30px; font-weight: 400;
   line-height: 1;
+  color: var(--text-primary);
 }
 .stats-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
 </style>

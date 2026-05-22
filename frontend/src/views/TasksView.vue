@@ -50,11 +50,13 @@
           <div class="form-row">
             <div class="form-group"><label>调度类型</label>
               <select class="input" v-model="form.schedule_type">
-                <option value="manual">手动</option><option value="once">单次</option>
-                <option value="interval">周期</option><option value="cron">Cron</option>
+                <option value="manual">手动</option>
+                <option value="once">单次</option>
+                <option value="interval">周期</option>
+                <option value="cron">Cron</option>
               </select>
             </div>
-            <div class="form-group"><label>优先级 (1-10)</label><input class="input" type="number" min="1" max="10" v-model.number="form.priority" /></div>
+            <div class="form-group"><label>优先级 (1-10)</label><input class="input" type="number" v-model.number="form.priority" min="1" max="10" /></div>
           </div>
           <div class="modal-actions">
             <button type="button" class="btn" @click="showCreate = false">取消</button>
@@ -72,9 +74,9 @@ import { useTaskStore } from "@/stores/task";
 
 const store = useTaskStore();
 const showCreate = ref(false);
-const scheduleLabels: Record<string, string> = { manual: "手动", once: "单次", interval: "周期", cron: "Cron" };
 const form = reactive({ name: "", description: "", schedule_type: "manual", priority: 5 });
 
+const scheduleLabels: Record<string, string> = { manual: "手动", once: "单次", interval: "周期", cron: "Cron" };
 function priorityColor(p: number) {
   if (p >= 8) return "var(--red)";
   if (p >= 5) return "var(--yellow)";
@@ -82,42 +84,46 @@ function priorityColor(p: number) {
 }
 
 async function handleCreate() {
-  await store.createTask({ ...form });
+  await store.createTask(form);
   showCreate.value = false;
   form.name = ""; form.description = "";
 }
-
-async function handleRun(id: number) {
-  try { await store.runTask(id); alert("任务执行完成！"); } catch { alert("执行失败"); }
-}
-
-async function handleDelete(id: number) {
-  if (confirm("确定删除？")) await store.deleteTask(id);
-}
-
+async function handleRun(id: number) { try { await store.runTask(id); alert("运行成功"); } catch { alert("运行失败"); } }
+async function handleDelete(id: number) { if (confirm("确定删除？")) await store.deleteTask(id); }
 onMounted(() => store.fetchTasks());
 </script>
 
 <style scoped>
-.tasks-page { max-width: 1100px; }
+.tasks-page { max-width: 1200px; }
 .tasks-table { padding: 0; overflow: hidden; }
 .table-header, .table-row {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  align-items: center; padding: 14px 20px; gap: 12px;
+  display: grid; grid-template-columns: 2fr 1fr 120px 100px 140px;
+  align-items: center; padding: 12px 20px; gap: 12px;
 }
-.table-header { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg-base); }
-.table-row { border-top: 1px solid var(--border-subtle); transition: background 0.2s; }
-.table-row:hover { background: var(--bg-hover); }
-.task-name { display: block; font-size: 14px; font-weight: 600; }
-.task-desc { font-size: 12px; color: var(--text-muted); }
-.schedule-badge { font-size: 12px; padding: 3px 10px; border-radius: 12px; background: var(--bg-surface); color: var(--text-secondary); }
-.priority-bar { width: 60px; height: 4px; background: var(--bg-active); border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 8px; }
+.table-header {
+  background: var(--bg-surface);
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.table-row {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.2s;
+}
+.table-row:last-child { border-bottom: none; }
+.table-row:hover { background: var(--bg-surface); }
+.task-name { display: block; font-weight: 600; font-size: 14px; }
+.task-desc { display: block; font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.schedule-badge {
+  font-size: 12px; padding: 3px 10px; border-radius: 12px;
+  background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border-subtle);
+}
+.priority-bar { width: 60px; height: 4px; background: var(--bg-active); border-radius: 2px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 8px; }
 .priority-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
-.priority-num { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
-.col-actions { display: flex; gap: 6px; }
-.modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
-.modal { width: 100%; max-width: 480px; padding: 32px; border-radius: var(--radius-lg); }
-.modal-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+.priority-num { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+.modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(26,22,18,0.3); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
+.modal { width: 100%; max-width: 480px; padding: 32px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+.modal-title { font-family: var(--font-display); font-size: 24px; font-weight: 400; font-style: italic; margin-bottom: 24px; }
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }

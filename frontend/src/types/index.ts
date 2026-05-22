@@ -119,12 +119,12 @@ export interface DashboardStats {
 }
 
 export const NODE_TYPES: Record<string, { label: string; icon: string; color: string; desc: string }> = {
-  llm: { label: "LLM 调用", icon: "🤖", color: "#06b6d4", desc: "调用大语言模型" },
-  condition: { label: "条件分支", icon: "🔀", color: "#f59e0b", desc: "根据条件进行分支" },
-  code: { label: "代码执行", icon: "⚡", color: "#8b5cf6", desc: "运行自定义代码" },
-  input: { label: "输入节点", icon: "📥", color: "#10b981", desc: "工作流输入" },
-  output: { label: "输出节点", icon: "📤", color: "#ef4444", desc: "工作流输出" },
-  tool: { label: "工具调用", icon: "🔧", color: "#f97316", desc: "调用外部工具" },
-  http: { label: "HTTP 请求", icon: "🌐", color: "#3b82f6", desc: "发送HTTP请求" },
-  variable: { label: "变量操作", icon: "📦", color: "#ec4899", desc: "变量赋值与转换" },
+  llm: { label: "LLM 调用", icon: "🤖", color: "#c9a96e", desc: "调用大语言模型" },
+  condition: { label: "条件分支", icon: "🔀", color: "#c9a030", desc: "根据条件进行分支" },
+  code: { label: "代码执行", icon: "⚡", color: "#7c6fa0", desc: "运行自定义代码" },
+  input: { label: "输入节点", icon: "📥", color: "#5a8f5e", desc: "工作流输入" },
+  output: { label: "输出节点", icon: "📤", color: "#c0504d", desc: "工作流输出" },
+  tool: { label: "工具调用", icon: "🔧", color: "#c97a3a", desc: "调用外部工具" },
+  http: { label: "HTTP 请求", icon: "🌐", color: "#6a8fba", desc: "发送HTTP请求" },
+  variable: { label: "变量操作", icon: "📦", color: "#b06a8a", desc: "变量赋值与转换" },
 };

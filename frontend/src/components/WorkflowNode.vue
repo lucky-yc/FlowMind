@@ -1,6 +1,6 @@
 <template>
   <div class="custom-node" :class="{ selected: data.selected }" :style="nodeStyle">
-    <div class="node-header" :style="{ background: typeInfo.color + '15', borderBottom: `1px solid ${typeInfo.color}30` }">
+    <div class="node-header" :style="{ background: typeInfo.color + '10', borderBottom: `1px solid ${typeInfo.color}25` }">
       <span class="node-icon">{{ typeInfo.icon }}</span>
       <span class="node-label">{{ nodeData.label }}</span>
     </div>
@@ -26,14 +26,14 @@ const nodeType = computed(() => nodeData.value.node_type || "llm");
 const typeInfo = computed(() => NODE_TYPES[nodeType.value] || NODE_TYPES.llm);
 
 const nodeStyle = computed(() => ({
-  borderColor: typeInfo.value.color + "40",
+  borderColor: typeInfo.value.color + "35",
 }));
 
 const handleStyle = computed(() => ({
   width: "10px",
   height: "10px",
   background: typeInfo.value.color,
-  border: "2px solid " + typeInfo.value.color + "60",
+  border: "2px solid " + typeInfo.value.color + "50",
 }));
 </script>
 
@@ -44,12 +44,12 @@ const handleStyle = computed(() => ({
   border: 2px solid var(--border-subtle);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  box-shadow: var(--shadow-md);
   transition: border-color 0.2s, box-shadow 0.2s;
   font-family: var(--font-body);
 }
 .custom-node:hover, .custom-node.selected {
-  box-shadow: 0 0 24px rgba(6,182,212,0.2);
+  box-shadow: var(--shadow-lg);
 }
 .node-header {
   display: flex; align-items: center; gap: 8px;

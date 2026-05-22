@@ -1,19 +1,18 @@
 <template>
   <div class="editor-layout">
     <!-- Left: Node Palette -->
-    <div class="node-palette glass">
+    <div class="node-palette">
       <div class="palette-header">
         <h3>节点库</h3>
       </div>
       <div class="palette-list">
         <div
-          v-for="(info, key) in NODE_TYPES"
-          :key="key"
+          v-for="(info, type) in NODE_TYPES" :key="type"
           class="palette-item"
           draggable="true"
-          @dragstart="onDragStart($event, String(key))"
+          @dragstart="(e) => onDragStart(e, String(type))"
         >
-          <span class="pi-icon" :style="{ background: info.color + '20', color: info.color }">{{ info.icon }}</span>
+          <div class="pi-icon" :style="{ background: info.color + '15', color: info.color }">{{ info.icon }}</div>
           <div class="pi-info">
             <span class="pi-name">{{ info.label }}</span>
             <span class="pi-desc">{{ info.desc }}</span>
@@ -24,59 +23,48 @@
 
     <!-- Center: Canvas -->
     <div class="editor-center">
-      <div class="editor-toolbar glass">
+      <div class="editor-toolbar">
         <div class="toolbar-left">
-          <input
-            class="wf-name-input"
-            v-model="workflowName"
-            @blur="saveWorkflow"
-            placeholder="工作流名称"
-          />
-          <span class="wf-status badge" :class="`badge-${workflowStatus}`">{{ workflowStatus }}</span>
+          <input class="wf-name-input" v-model="workflowName" placeholder="工作流名称" />
+          <span class="badge" :class="`badge-${workflowStatus}`">{{ workflowStatus }}</span>
         </div>
         <div class="toolbar-center">
+          <button class="toolbar-btn" @click="doZoomOut" title="缩小">−</button>
+          <button class="toolbar-btn" @click="doFitView" title="适应">⊞</button>
+          <button class="toolbar-btn" @click="doZoomIn" title="放大">+</button>
+          <div class="toolbar-sep"></div>
           <button class="toolbar-btn" @click="undo" title="撤销">↩</button>
           <button class="toolbar-btn" @click="redo" title="重做">↪</button>
-          <div class="toolbar-sep"></div>
-          <button class="toolbar-btn" @click="doZoomIn" title="放大">＋</button>
-          <button class="toolbar-btn" @click="doZoomOut" title="缩小">－</button>
-          <button class="toolbar-btn" @click="doFitView" title="适应画布">⊞</button>
         </div>
         <div class="toolbar-right">
-          <button class="btn btn-sm" @click="saveWorkflow" :disabled="saving">
-            {{ saving ? "保存中..." : "💾 保存" }}
+          <button class="btn btn-sm" :disabled="saving" @click="saveWorkflow">
+            {{ saving ? '保存中...' : '💾 保存' }}
           </button>
-          <button class="btn btn-sm btn-primary" @click="runWorkflow" :disabled="running">
-            {{ running ? "执行中..." : "▶ 运行" }}
+          <button class="btn btn-sm btn-primary" :disabled="running" @click="runWorkflow">
+            {{ running ? '运行中...' : '▶ 运行' }}
           </button>
         </div>
       </div>
 
       <VueFlow
-        ref="vueFlowRef"
+        class="flow-canvas"
         v-model:nodes="nodes"
         v-model:edges="edges"
-        :default-viewport="{ zoom: 1, x: 0, y: 0 }"
-        :min-zoom="0.2"
-        :max-zoom="4"
-        :snap-to-grid="true"
-        :snap-grid="[20, 20]"
-        class="flow-canvas"
+        :default-edge-options="{ type: 'smoothstep', animated: true }"
+        @connect="onConnect"
         @node-click="onNodeClick"
         @pane-click="onPaneClick"
-        @connect="onConnect"
-        @drop="onDrop"
         @dragover="onDragOver"
+        @drop="onDrop"
       >
         <template #node-custom="nodeProps">
           <WorkflowNode :data="nodeProps" />
         </template>
-        <Background :gap="20" :size="1" pattern-color="rgba(99,179,237,0.05)" />
-        <Controls position="bottom-left" />
+        <Background :gap="20" :size="1" pattern-color="rgba(26,22,18,0.06)" />
+        <Controls />
         <MiniMap
-          position="bottom-right"
           :node-color="miniMapNodeColor"
-          style="background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: 8px;"
+          style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px;"
         />
       </VueFlow>
 
@@ -170,7 +158,6 @@ onMounted(async () => {
       edges.value = wf.edges || [];
     }
   } else {
-    // Default start/end nodes for new workflow
     nodes.value = [
       { id: "start", type: "custom", position: { x: 100, y: 300 }, data: { label: "开始", node_type: "input", config: {}, description: "工作流入口" } },
       { id: "end", type: "custom", position: { x: 700, y: 300 }, data: { label: "结束", node_type: "output", config: {}, description: "工作流出口" } },
@@ -273,7 +260,7 @@ async function runWorkflow() {
 
 function miniMapNodeColor(node: any) {
   const type = node.data?.node_type || node.type;
-  return NODE_TYPES[type]?.color || "#64748b";
+  return NODE_TYPES[type]?.color || "#9a8e80";
 }
 </script>
 
@@ -288,17 +275,17 @@ function miniMapNodeColor(node: any) {
   background: var(--bg-base);
 }
 .palette-header { padding: 16px 18px; border-bottom: 1px solid var(--border-subtle); }
-.palette-header h3 { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+.palette-header h3 { font-family: var(--font-display); font-size: 16px; font-weight: 400; font-style: italic; color: var(--text-secondary); }
 .palette-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
 .palette-item {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px; border-radius: var(--radius-md);
-  background: var(--bg-raised); border: 1px solid var(--border-subtle);
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
   cursor: grab; transition: all 0.2s; user-select: none;
 }
 .palette-item:hover {
   border-color: var(--border-accent);
-  box-shadow: 0 0 16px var(--accent-glow);
+  box-shadow: var(--shadow-sm);
   transform: translateX(4px);
 }
 .palette-item:active { cursor: grabbing; transform: scale(0.97); }
@@ -322,10 +309,10 @@ function miniMapNodeColor(node: any) {
 .wf-name-input {
   background: transparent; border: 1px solid transparent;
   color: var(--text-primary); font-family: var(--font-display);
-  font-size: 16px; font-weight: 600; padding: 4px 8px; border-radius: var(--radius-sm);
+  font-size: 18px; font-weight: 400; font-style: italic; padding: 4px 8px; border-radius: var(--radius-sm);
   width: 200px; transition: border-color 0.2s;
 }
-.wf-name-input:focus { border-color: var(--border-accent); background: var(--bg-raised); outline: none; }
+.wf-name-input:focus { border-color: var(--border-accent); background: var(--bg-surface); outline: none; }
 .toolbar-btn {
   width: 32px; height: 32px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
   background: var(--bg-surface); color: var(--text-secondary); cursor: pointer;
@@ -334,24 +321,23 @@ function miniMapNodeColor(node: any) {
 }
 .toolbar-btn:hover { background: var(--bg-hover); border-color: var(--border-accent); color: var(--text-primary); }
 .toolbar-sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
-.flow-canvas { flex: 1; background: var(--bg-deepest); }
+.flow-canvas { flex: 1; background: var(--bg-page); }
 
 /* Execution Overlay */
 .exec-overlay {
   position: absolute; top: 60px; right: 16px; width: 360px; max-height: 400px;
   border-radius: var(--radius-lg); overflow: hidden; z-index: 10;
-  background: rgba(17,24,39,0.9); backdrop-filter: blur(20px);
-  border: 1px solid var(--border-subtle); box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg);
 }
 .exec-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border-subtle); }
-.exec-header h4 { font-size: 14px; font-weight: 600; }
+.exec-header h4 { font-family: var(--font-display); font-size: 16px; font-weight: 400; font-style: italic; }
 .close-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; }
 .exec-body { padding: 18px; }
 .exec-status-big { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
 .exec-status-big.completed { color: var(--green); }
 .exec-status-big.failed { color: var(--red); }
 .exec-output {
-  background: var(--bg-deep); padding: 12px; border-radius: var(--radius-md);
+  background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md);
   font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);
   max-height: 200px; overflow-y: auto; white-space: pre-wrap;
 }
