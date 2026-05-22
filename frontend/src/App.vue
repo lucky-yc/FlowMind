@@ -1,5 +1,5 @@
 <template>
-  <div class="app-layout" v-if="route.name !== 'login'">
+  <div class="app-layout" v-if="showLayout">
     <AppSidebar />
     <main class="main-content">
       <header class="top-bar glass">
@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import AppSidebar from "@/components/AppSidebar.vue";
@@ -35,6 +35,7 @@ import AppSidebar from "@/components/AppSidebar.vue";
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const ready = ref(false);
 
 const pageTitles: Record<string, string> = {
   dashboard: "工作台",
@@ -46,11 +47,13 @@ const pageTitles: Record<string, string> = {
   executions: "执行监控",
 };
 const pageTitle = computed(() => pageTitles[route.name as string] || "FlowMind");
+const showLayout = computed(() => ready.value && route.name !== "login");
 
 onMounted(async () => {
   if (auth.token) {
     await auth.fetchUser();
   }
+  ready.value = true;
 });
 
 function handleLogout() {
