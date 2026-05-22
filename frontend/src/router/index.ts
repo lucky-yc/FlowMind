@@ -7,6 +7,7 @@ const routes = [
   { path: "/workflows/:id", name: "workflow-editor", component: () => import("@/views/WorkflowEditorView.vue") },
   { path: "/agents", name: "agents", component: () => import("@/views/AgentsView.vue") },
   { path: "/agents/:id", name: "agent-detail", component: () => import("@/views/AgentDetailView.vue") },
+  { path: "/models", name: "models", component: () => import("@/views/ModelsView.vue") },
   { path: "/tasks", name: "tasks", component: () => import("@/views/TasksView.vue") },
   { path: "/executions", name: "executions", component: () => import("@/views/ExecutionsView.vue") },
 ];

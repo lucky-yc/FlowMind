@@ -23,6 +23,9 @@
       <router-link to="/agents" class="nav-item" :class="{ active: route.name === 'agents' || route.name === 'agent-detail' }">
         <span class="nav-icon">🤖</span><span class="nav-label">智能体</span>
       </router-link>
+      <router-link to="/models" class="nav-item" :class="{ active: route.name === 'models' }">
+        <span class="nav-icon">🧠</span><span class="nav-label">模型管理</span>
+      </router-link>
       <router-link to="/tasks" class="nav-item" :class="{ active: route.name === 'tasks' }">
         <span class="nav-icon">📋</span><span class="nav-label">任务调度</span>
       </router-link>

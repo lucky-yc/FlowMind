@@ -49,9 +49,17 @@
             </select>
           </div>
           <div class="form-group"><label>模型</label>
-            <select class="input" v-model="form.model_name">
+            <select class="input" v-model="form.model_name" v-if="modelStore.briefModels.length">
+              <option v-for="m in modelStore.briefModels" :key="m.id" :value="m.model_id">
+                {{ m.name }} ({{ m.provider }})
+              </option>
+            </select>
+            <select class="input" v-model="form.model_name" v-else>
               <option>GPT-4</option><option>GPT-4o</option><option>Claude 3 Opus</option><option>Claude 3 Sonnet</option>
             </select>
+            <span class="input-hint" v-if="!modelStore.briefModels.length">
+              暂无已配置模型，使用默认选项。<router-link to="/models">去添加</router-link>
+            </span>
           </div>
           <div class="modal-actions">
             <button type="button" class="btn" @click="showCreate = false">取消</button>
@@ -85,9 +93,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from "vue";
 import { useAgentStore } from "@/stores/agent";
+import { useModelStore } from "@/stores/model";
 import { agentApi } from "@/api/agents";
-
 const store = useAgentStore();
+const modelStore = useModelStore();
 const showCreate = ref(false);
 const chatAgent = ref<any>(null);
 const chatMessages = ref<any[]>([]);
@@ -125,14 +134,14 @@ async function sendChat() {
   try {
     const { data } = await agentApi.chat(chatAgent.value.id, msg);
     chatMessages.value.push({ role: "assistant", content: data.response });
-  } catch {
+  } catch (_e) {
     chatMessages.value.push({ role: "assistant", content: "请求失败，请重试。" });
   }
   await nextTick();
   if (chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight;
 }
 
-onMounted(() => store.fetchAgents());
+onMounted(() => { store.fetchAgents(); modelStore.fetchBriefModels(); });
 </script>
 
 <style scoped>
@@ -179,4 +188,6 @@ onMounted(() => store.fetchAgents());
 .chat-msg.assistant .msg-bubble { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-bottom-left-radius: 4px; }
 .chat-input-area { display: flex; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border-subtle); }
 .chat-input-area .input { flex: 1; }
+.input-hint { display: block; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.input-hint a { color: var(--text-accent); }
 </style>

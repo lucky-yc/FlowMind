@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from app.core.config import get_settings
 from app.core.database import engine, Base
 from app.core.logging_config import logger
-from app.api import auth, workflows, agents, tasks, dashboard
+from app.api import auth, workflows, agents, tasks, dashboard, models
 
 settings = get_settings()
 
@@ -59,3 +59,4 @@ app.include_router(workflows.router, prefix=API_PREFIX)
 app.include_router(agents.router, prefix=API_PREFIX)
 app.include_router(tasks.router, prefix=API_PREFIX)
 app.include_router(dashboard.router, prefix=API_PREFIX)
+app.include_router(models.router, prefix=API_PREFIX)

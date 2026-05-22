@@ -21,3 +21,4 @@ class User(Base):
     workflows = relationship("Workflow", back_populates="owner", cascade="all, delete-orphan")
     agents = relationship("Agent", back_populates="owner", cascade="all, delete-orphan")
     tasks = relationship("Task", back_populates="creator", cascade="all, delete-orphan")
+    llm_models = relationship("LLMModel", back_populates="owner", cascade="all, delete-orphan")
