@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -9,22 +9,17 @@ from app.core.config import get_settings
 from app.core.database import get_db
 
 settings = get_settings()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security_scheme = HTTPBearer()
 
 
-def _truncate_password(password: str) -> str:
-    """bcrypt has a 72-byte limit; truncate to fit."""
-    encoded = password.encode("utf-8")[:72]
-    return encoded.decode("utf-8", errors="ignore")
-
-
 def hash_password(password: str) -> str:
-    return pwd_context.hash(_truncate_password(password))
+    pwd = password.encode("utf-8")[:72]
+    return bcrypt.hashpw(pwd, bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(_truncate_password(plain_password), hashed_password)
+    pwd = plain_password.encode("utf-8")[:72]
+    return bcrypt.checkpw(pwd, hashed_password.encode("utf-8"))
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
