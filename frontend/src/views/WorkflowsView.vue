@@ -99,7 +99,7 @@ async function handleExecute(id: number) {
   try {
     await store.executeWorkflow(id);
     alert("执行完成！");
-  } catch { alert("执行失败"); }
+  } catch (_e) { alert("执行失败"); }
 }
 
 async function handleDelete(id: number) {

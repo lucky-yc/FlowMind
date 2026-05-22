@@ -51,7 +51,7 @@ export const useTaskStore = defineStore("task", () => {
         started_at: t.created_at,
         duration_ms: null,
       })) || [];
-    } catch { /* ignore */ }
+    } catch (_e) { /* ignore */ }
   }
 
   return { tasks, executions, loading, total, stats, fetchTasks, createTask, deleteTask, runTask, fetchStats, fetchExecutions };

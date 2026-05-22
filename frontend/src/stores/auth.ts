@@ -26,7 +26,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const { data } = await authApi.getMe();
       user.value = data;
-    } catch {
+    } catch (_e) {
       logout();
     }
   }

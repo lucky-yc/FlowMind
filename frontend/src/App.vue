@@ -1,5 +1,14 @@
 <template>
-  <div class="app-layout" v-if="showLayout">
+  <!-- Loading screen while auth state resolves -->
+  <div v-if="!ready" class="app-loading">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Login page: no layout wrapper -->
+  <router-view v-else-if="route.name === 'login'" />
+
+  <!-- Authenticated pages: layout with sidebar -->
+  <div v-else class="app-layout">
     <AppSidebar />
     <main class="main-content">
       <header class="top-bar glass">
@@ -23,7 +32,6 @@
       </div>
     </main>
   </div>
-  <router-view v-else />
 </template>
 
 <script setup lang="ts">
@@ -47,7 +55,6 @@ const pageTitles: Record<string, string> = {
   executions: "执行监控",
 };
 const pageTitle = computed(() => pageTitles[route.name as string] || "FlowMind");
-const showLayout = computed(() => ready.value && route.name !== "login");
 
 onMounted(async () => {
   if (auth.token) {
@@ -63,6 +70,24 @@ function handleLogout() {
 </script>
 
 <style scoped>
+.app-loading {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-page);
+}
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 .app-layout { display: flex; height: 100vh; overflow: hidden; }
 .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .top-bar {

@@ -88,7 +88,7 @@ async function handleCreate() {
   showCreate.value = false;
   form.name = ""; form.description = "";
 }
-async function handleRun(id: number) { try { await store.runTask(id); alert("运行成功"); } catch { alert("运行失败"); } }
+async function handleRun(id: number) { try { await store.runTask(id); alert("运行成功"); } catch (_e) { alert("运行失败"); } }
 async function handleDelete(id: number) { if (confirm("确定删除？")) await store.deleteTask(id); }
 onMounted(() => store.fetchTasks());
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-layout">
+  <div class="editor-layout" @keydown="onKeyDown" tabindex="0" ref="editorRoot">
     <!-- Left: Node Palette -->
     <div class="node-palette">
       <div class="palette-header">
@@ -29,14 +29,15 @@
           <span class="badge" :class="`badge-${workflowStatus}`">{{ workflowStatus }}</span>
         </div>
         <div class="toolbar-center">
-          <button class="toolbar-btn" @click="doZoomOut" title="缩小">−</button>
-          <button class="toolbar-btn" @click="doFitView" title="适应">⊞</button>
-          <button class="toolbar-btn" @click="doZoomIn" title="放大">+</button>
+          <button class="toolbar-btn" @click="doZoomOut" title="缩小 (Ctrl+-)">−</button>
+          <button class="toolbar-btn" @click="doFitView" title="适应 (Ctrl+0)">⊞</button>
+          <button class="toolbar-btn" @click="doZoomIn" title="放大 (Ctrl+=)">+</button>
           <div class="toolbar-sep"></div>
-          <button class="toolbar-btn" @click="undo" title="撤销">↩</button>
-          <button class="toolbar-btn" @click="redo" title="重做">↪</button>
+          <button class="toolbar-btn" @click="undo" title="撤销 (Ctrl+Z)">↩</button>
+          <button class="toolbar-btn" @click="redo" title="重做 (Ctrl+Y)">↪</button>
         </div>
         <div class="toolbar-right">
+          <span class="toolbar-info" v-if="nodes.length">{{ nodes.length }} 节点 · {{ edges.length }} 连线</span>
           <button class="btn btn-sm" :disabled="saving" @click="saveWorkflow">
             {{ saving ? '保存中...' : '💾 保存' }}
           </button>
@@ -54,6 +55,7 @@
         @connect="onConnect"
         @node-click="onNodeClick"
         @pane-click="onPaneClick"
+        @edge-click="onEdgeClick"
         @dragover="onDragOver"
         @drop="onDrop"
       >
@@ -81,6 +83,9 @@
           <pre class="exec-output">{{ JSON.stringify(executionResult.output_data, null, 2) }}</pre>
         </div>
       </div>
+
+      <!-- Toast 通知 -->
+      <div class="toast" v-if="toast" :class="toast.type">{{ toast.message }}</div>
     </div>
 
     <!-- Right: Config Panel -->
@@ -94,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { VueFlow, useVueFlow } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
@@ -107,15 +112,16 @@ import "@vue-flow/minimap/dist/style.css";
 import WorkflowNode from "@/components/WorkflowNode.vue";
 import NodeConfigPanel from "@/components/NodeConfigPanel.vue";
 import { useWorkflowStore } from "@/stores/workflow";
-import { NODE_TYPES } from "@/types";
+import { NODE_TYPES, getDefaultConfig } from "@/types";
 
 const route = useRoute();
 const store = useWorkflowStore();
-const { fitView: _fitView, zoomIn: _zoomIn, zoomOut: _zoomOut, addNodes, addEdges, removeNodes } = useVueFlow();
+const { fitView: _fitView, zoomIn: _zoomIn, zoomOut: _zoomOut, addNodes, addEdges, removeNodes, removeEdges, getNodes, getEdges } = useVueFlow();
 const doFitView = () => _fitView();
 const doZoomIn = () => _zoomIn();
 const doZoomOut = () => _zoomOut();
 
+const editorRoot = ref<HTMLElement>();
 const nodes = ref<any[]>([]);
 const edges = ref<any[]>([]);
 const selectedNode = ref<any>(null);
@@ -125,25 +131,51 @@ const saving = ref(false);
 const running = ref(false);
 const executionResult = ref<any>(null);
 const workflowId = ref(Number(route.params.id));
+const toast = ref<{ message: string; type: string } | null>(null);
 
 let history: any[] = [];
 let historyIdx = -1;
+let historyLock = false;
 
 function pushHistory() {
+  if (historyLock) return;
   history = history.slice(0, historyIdx + 1);
   history.push(JSON.stringify({ nodes: nodes.value, edges: edges.value }));
   historyIdx = history.length - 1;
 }
 function undo() {
-  if (historyIdx > 0) { historyIdx--; const s = JSON.parse(history[historyIdx]); nodes.value = s.nodes; edges.value = s.edges; }
+  if (historyIdx > 0) {
+    historyLock = true;
+    historyIdx--;
+    const s = JSON.parse(history[historyIdx]);
+    nodes.value = s.nodes;
+    edges.value = s.edges;
+    nextTick(() => { historyLock = false; });
+  }
 }
 function redo() {
-  if (historyIdx < history.length - 1) { historyIdx++; const s = JSON.parse(history[historyIdx]); nodes.value = s.nodes; edges.value = s.edges; }
+  if (historyIdx < history.length - 1) {
+    historyLock = true;
+    historyIdx++;
+    const s = JSON.parse(history[historyIdx]);
+    nodes.value = s.nodes;
+    edges.value = s.edges;
+    nextTick(() => { historyLock = false; });
+  }
 }
 
 watch([nodes, edges], () => { pushHistory(); }, { deep: true });
 
+/** Toast 提示 */
+function showToast(message: string, type = "info") {
+  toast.value = { message, type };
+  setTimeout(() => { toast.value = null; }, 2500);
+}
+
 onMounted(async () => {
+  // 让编辑器容器可接收键盘事件
+  editorRoot.value?.focus();
+
   if (workflowId.value) {
     await store.fetchWorkflow(workflowId.value);
     const wf = store.currentWorkflow;
@@ -159,8 +191,8 @@ onMounted(async () => {
     }
   } else {
     nodes.value = [
-      { id: "start", type: "custom", position: { x: 100, y: 300 }, data: { label: "开始", node_type: "input", config: {}, description: "工作流入口" } },
-      { id: "end", type: "custom", position: { x: 700, y: 300 }, data: { label: "结束", node_type: "output", config: {}, description: "工作流出口" } },
+      { id: "start", type: "custom", position: { x: 100, y: 300 }, data: { label: "开始", node_type: "input", config: getDefaultConfig("input"), description: "工作流入口" } },
+      { id: "end", type: "custom", position: { x: 700, y: 300 }, data: { label: "结束", node_type: "output", config: getDefaultConfig("output"), description: "工作流出口" } },
     ];
     workflowName.value = "未命名工作流";
   }
@@ -190,12 +222,48 @@ function onDrop(event: DragEvent) {
     id: `node_${++nodeIdCounter}`,
     type: "custom",
     position,
-    data: { label: info.label, node_type: nodeType, config: {}, description: info.desc },
+    data: { label: info.label, node_type: nodeType, config: getDefaultConfig(nodeType), description: info.desc },
   };
   addNodes([newNode]);
+  showToast(`已添加 ${info.label} 节点`);
 }
 
+/** 连接验证 */
 function onConnect(params: any) {
+  const sourceNode = nodes.value.find((n) => n.id === params.source);
+  const targetNode = nodes.value.find((n) => n.id === params.target);
+  if (!sourceNode || !targetNode) return;
+
+  const sourceType = sourceNode.data?.node_type;
+  const targetType = targetNode.data?.node_type;
+
+  // 不允许自连
+  if (params.source === params.target) {
+    showToast("不能连接到自身", "error");
+    return;
+  }
+
+  // 输入节点只能作为源（没有入边）
+  if (targetType === "input") {
+    showToast("输入节点不能作为连接目标", "error");
+    return;
+  }
+
+  // 输出节点只能作为目标（没有出边）
+  if (sourceType === "output") {
+    showToast("输出节点不能作为连接源", "error");
+    return;
+  }
+
+  // 检查是否已存在相同连线
+  const exists = edges.value.some(
+    (e) => e.source === params.source && e.target === params.target
+  );
+  if (exists) {
+    showToast("该连接已存在", "error");
+    return;
+  }
+
   const edge = {
     id: `e_${params.source}_${params.target}`,
     source: params.source,
@@ -216,17 +284,69 @@ function onPaneClick() {
   selectedNode.value = null;
 }
 
+/** 点击边显示信息 */
+function onEdgeClick({ edge }: any) {
+  showToast(`连线: ${edge.source} → ${edge.target}`, "info");
+}
+
 function onNodeUpdate(updatedNode: any) {
   const idx = nodes.value.findIndex((n) => n.id === updatedNode.id);
   if (idx >= 0) {
     nodes.value[idx] = { ...nodes.value[idx], data: { ...updatedNode.data } };
+    // 同步 selectedNode
+    if (selectedNode.value?.id === updatedNode.id) {
+      selectedNode.value = nodes.value[idx];
+    }
   }
 }
 
 function deleteSelectedNode() {
   if (!selectedNode.value) return;
-  removeNodes([selectedNode.value.id]);
+  const id = selectedNode.value.id;
+  // 同时删除关联的边
+  const relatedEdges = edges.value.filter((e) => e.source === id || e.target === id);
+  if (relatedEdges.length) {
+    removeEdges(relatedEdges.map((e) => e.id));
+  }
+  removeNodes([id]);
   selectedNode.value = null;
+  showToast("节点已删除");
+}
+
+/** 键盘快捷键 */
+function onKeyDown(e: KeyboardEvent) {
+  // Delete / Backspace 删除选中节点
+  if ((e.key === "Delete" || e.key === "Backspace") && selectedNode.value) {
+    // 避免在 input/textarea 中触发
+    const tag = (e.target as HTMLElement)?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    e.preventDefault();
+    deleteSelectedNode();
+    return;
+  }
+
+  // Ctrl+Z 撤销
+  if (e.key === "z" && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+    const tag = (e.target as HTMLElement)?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    e.preventDefault();
+    undo();
+    return;
+  }
+
+  // Ctrl+Y 或 Ctrl+Shift+Z 重做
+  if ((e.key === "y" && (e.ctrlKey || e.metaKey)) || (e.key === "z" && (e.ctrlKey || e.metaKey) && e.shiftKey)) {
+    const tag = (e.target as HTMLElement)?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    e.preventDefault();
+    redo();
+    return;
+  }
+
+  // Escape 取消选中
+  if (e.key === "Escape") {
+    selectedNode.value = null;
+  }
 }
 
 async function saveWorkflow() {
@@ -243,7 +363,11 @@ async function saveWorkflow() {
       const wf = await store.createWorkflow(payload);
       workflowId.value = wf.id;
     }
-  } catch (e) { console.error(e); }
+    showToast("保存成功 ✓", "success");
+  } catch (e) {
+    console.error(e);
+    showToast("保存失败", "error");
+  }
   saving.value = false;
 }
 
@@ -253,8 +377,12 @@ async function runWorkflow() {
     await saveWorkflow();
     if (workflowId.value) {
       executionResult.value = await store.executeWorkflow(workflowId.value);
+      showToast("执行完成", "success");
     }
-  } catch (e) { console.error(e); }
+  } catch (e) {
+    console.error(e);
+    showToast("执行失败", "error");
+  }
   running.value = false;
 }
 
@@ -265,7 +393,7 @@ function miniMapNodeColor(node: any) {
 </script>
 
 <style scoped>
-.editor-layout { display: flex; height: calc(100vh - var(--header-height)); margin: -28px; }
+.editor-layout { display: flex; height: calc(100vh - var(--header-height)); margin: -28px; outline: none; }
 
 /* Node Palette */
 .node-palette {
@@ -306,6 +434,7 @@ function miniMapNodeColor(node: any) {
   background: var(--bg-base); flex-shrink: 0;
 }
 .toolbar-left, .toolbar-center, .toolbar-right { display: flex; align-items: center; gap: 8px; }
+.toolbar-info { font-size: 11px; color: var(--text-muted); margin-right: 4px; }
 .wf-name-input {
   background: transparent; border: 1px solid transparent;
   color: var(--text-primary); font-family: var(--font-display);
@@ -341,4 +470,17 @@ function miniMapNodeColor(node: any) {
   font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);
   max-height: 200px; overflow-y: auto; white-space: pre-wrap;
 }
+
+/* Toast */
+.toast {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  padding: 10px 20px; border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 500; z-index: 20;
+  box-shadow: var(--shadow-lg);
+  animation: toast-in 0.3s ease;
+}
+.toast.info { background: var(--bg-base); color: var(--text-primary); border: 1px solid var(--border-subtle); }
+.toast.success { background: rgba(90,143,94,0.1); color: var(--green); border: 1px solid rgba(90,143,94,0.25); }
+.toast.error { background: rgba(192,80,77,0.1); color: var(--red); border: 1px solid rgba(192,80,77,0.25); }
+@keyframes toast-in { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 </style>
