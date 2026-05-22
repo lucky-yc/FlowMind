@@ -5,8 +5,10 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User
 from app.models.agent import Agent
+from app.models.model_provider import LLMModel
 from app.models.log import SystemLog
 from app.schemas.agent import AgentCreate, AgentUpdate, AgentResponse, AgentListResponse
+from app.services.llm import chat_completion
 
 router = APIRouter(prefix="/agents", tags=["智能体"])
 
@@ -73,13 +75,80 @@ def delete_agent(agent_id: int, current_user: User = Depends(get_current_user), 
 
 
 @router.post("/{agent_id}/chat")
-def agent_chat(agent_id: int, message: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def agent_chat(agent_id: int, message: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     a = db.query(Agent).filter(Agent.id == agent_id, Agent.owner_id == current_user.id).first()
     if not a:
         raise HTTPException(status_code=404, detail="智能体不存在")
+    
     user_msg = message.get("message", "")
-    return {
-        "response": f"[{a.name}] 收到消息: {user_msg}。这是一个模拟回复，实际部署时将调用 {a.model_name} 模型。",
-        "agent_id": a.id,
-        "model": a.model_name,
-    }
+    if not user_msg.strip():
+        raise HTTPException(status_code=400, detail="消息不能为空")
+    
+    # 查找智能体使用的模型配置
+    model_config = db.query(LLMModel).filter(
+        LLMModel.model_id == a.model_name,
+        LLMModel.owner_id == current_user.id,
+        LLMModel.is_active == True
+    ).first()
+    
+    # 如果找不到精确匹配，尝试模糊匹配
+    if not model_config:
+        model_config = db.query(LLMModel).filter(
+            LLMModel.name.contains(a.model_name),
+            LLMModel.owner_id == current_user.id,
+            LLMModel.is_active == True
+        ).first()
+    
+    # 如果仍然找不到，返回提示
+    if not model_config:
+        return {
+            "response": f"⚠️ 未找到模型 \"{a.model_name}\" 的配置。请先在「模型管理」中添加对应的模型配置。",
+            "agent_id": a.id,
+            "model": a.model_name,
+            "error": "model_not_found"
+        }
+    
+    # 构建消息列表
+    messages = []
+    
+    # 添加系统提示词
+    if a.system_prompt:
+        messages.append({"role": "system", "content": a.system_prompt})
+    
+    # 添加用户消息
+    messages.append({"role": "user", "content": user_msg})
+    
+    # 计算 temperature（Agent 存储为 0-100，需要转换为 0-2）
+    temperature = (a.temperature or 70) / 50.0  # 70 -> 1.4，范围 0-2
+    
+    # 使用智能体配置的 max_tokens 或模型默认值
+    max_tokens = a.max_tokens or model_config.max_tokens or 4096
+    
+    try:
+        # 调用 LLM 服务
+        response_text = await chat_completion(
+            model=model_config,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        
+        return {
+            "response": response_text,
+            "agent_id": a.id,
+            "model": a.model_name,
+        }
+    except ValueError as e:
+        return {
+            "response": f"❌ 模型调用失败: {str(e)}",
+            "agent_id": a.id,
+            "model": a.model_name,
+            "error": "model_call_failed"
+        }
+    except Exception as e:
+        return {
+            "response": f"❌ 发生未知错误: {str(e)}",
+            "agent_id": a.id,
+            "model": a.model_name,
+            "error": "unknown_error"
+        }
