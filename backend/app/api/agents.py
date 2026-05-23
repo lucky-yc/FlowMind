@@ -125,12 +125,17 @@ async def agent_chat(agent_id: int, message: dict, current_user: User = Depends(
     max_tokens = a.max_tokens or model_config.max_tokens or 4096
     
     try:
-        # 调用 LLM 服务
+        # 调用 LLM 服务（附带日志记录）
         response_text = await chat_completion(
             model=model_config,
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            db=db,
+            user_id=current_user.id,
+            agent_id=a.id,
+            source_type="agent",
+            source_name=a.name,
         )
         
         return {

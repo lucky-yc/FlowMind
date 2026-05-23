@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from app.core.config import get_settings
 from app.core.database import engine, Base
 from app.core.logging_config import logger
-from app.api import auth, workflows, agents, tasks, dashboard, models
+from app.api import auth, workflows, agents, tasks, dashboard, models, model_invocation_logs
 
 settings = get_settings()
 
@@ -60,3 +60,4 @@ app.include_router(agents.router, prefix=API_PREFIX)
 app.include_router(tasks.router, prefix=API_PREFIX)
 app.include_router(dashboard.router, prefix=API_PREFIX)
 app.include_router(models.router, prefix=API_PREFIX)
+app.include_router(model_invocation_logs.router, prefix=f"{API_PREFIX}/model-invocation-logs", tags=["模型调用日志"])

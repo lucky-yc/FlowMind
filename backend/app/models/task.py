@@ -44,6 +44,7 @@ class Execution(Base):
     task = relationship("Task", back_populates="executions")
     workflow = relationship("Workflow", back_populates="executions")
     logs = relationship("ExecutionLog", back_populates="execution", cascade="all, delete-orphan")
+    model_invocation_logs = relationship("ModelInvocationLog", back_populates="execution", cascade="all, delete-orphan")
 
 
 class ExecutionLog(Base):

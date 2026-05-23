@@ -24,3 +24,4 @@ class Agent(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     owner = relationship("User", back_populates="agents")
+    model_invocation_logs = relationship("ModelInvocationLog", back_populates="agent", cascade="all, delete-orphan")

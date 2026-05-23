@@ -31,3 +31,4 @@ class Workflow(Base):
 
     owner = relationship("User", back_populates="workflows")
     executions = relationship("Execution", back_populates="workflow", cascade="all, delete-orphan")
+    model_invocation_logs = relationship("ModelInvocationLog", back_populates="workflow", cascade="all, delete-orphan")
